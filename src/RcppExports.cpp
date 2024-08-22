@@ -23,11 +23,15 @@ BEGIN_RCPP
 END_RCPP
 }
 
+RcppExport SEXP _rcpp_module_boot_stan_fit4b_pp_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4n_pp_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4nb_mix_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4nb_pp_mod();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_simubayes_c_test", (DL_FUNC) &_simubayes_c_test, 1},
+    {"_rcpp_module_boot_stan_fit4b_pp_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4b_pp_mod, 0},
+    {"_rcpp_module_boot_stan_fit4n_pp_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4n_pp_mod, 0},
     {"_rcpp_module_boot_stan_fit4nb_mix_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4nb_mix_mod, 0},
     {"_rcpp_module_boot_stan_fit4nb_pp_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4nb_pp_mod, 0},
     {NULL, NULL, 0}

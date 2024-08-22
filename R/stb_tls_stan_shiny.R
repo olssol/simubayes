@@ -22,7 +22,7 @@
 #' @export
 #'
 stb_stan <- function(lst_data,
-                     stan_mdl = c("nb_mix", "nb_pp"),
+                     stan_mdl = c("nb_mix", "nb_pp", "b_pp", "n_pp"),
                      chains = 4, iter = 2000, warmup = 1000, cores = 4,
                      control = list(adapt_delta = 0.95), ...) {
 
@@ -57,10 +57,9 @@ stb_stan <- function(lst_data,
 #'
 #' @export
 #'
-stb_shiny <- function(appname = "bayes2", pkgname = "simutb") {
-
+stb_shiny <- function(appname = "mstage", pkgname = "simubayes") {
     req_pkgs        <- c("shiny", "shinythemes", "DT",
-                         "knitr", "rmarkdown", "pander")
+                         "shinybusy")
 
     chk_uninstalled <- sapply(req_pkgs,
                               function(x) {
@@ -86,9 +85,9 @@ stb_shiny <- function(appname = "bayes2", pkgname = "simutb") {
         stop(msg, call. = FALSE)
     }
 
-    app_dir <- system.file(appname, package = "simutb")
+    app_dir <- system.file(appname, package = pkgname)
     if (app_dir == "") {
-        stop("Could not find Shiny directory. Try re-installing `simutb`.",
+        stop("Could not find Shiny directory. Try re-installing the package.",
              call. = FALSE)
     }
 

@@ -6,7 +6,7 @@
 \usage{
 stb_stan(
   lst_data,
-  stan_mdl = c("nb_mix", "nb_pp"),
+  stan_mdl = c("nb_mix", "nb_pp", "b_pp", "n_pp"),
   chains = 4,
   iter = 2000,
   warmup = 1000,

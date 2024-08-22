@@ -13,9 +13,7 @@ Depends:
     R (>= 4.0),
     methods,
     dplyr (>= 1.0),
-    rpact (>= 3.2),
     ggplot2 (>= 3.3.5),
-    data.table (>= 1.14),
     tidyr (>= 1.1)
 Imports:
     methods,
@@ -41,5 +39,5 @@ LazyData: true
 ByteCompile: true
 NeedsCompilation: yes
 SystemRequirements: GNU make
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr

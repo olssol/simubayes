@@ -1,6 +1,6 @@
 #' The 'simubayes' package.
 #'
-#' @docType package
+#' @keywords internal
 #' @name    simubayes-package
 #' @aliases simubayes
 #' @useDynLib simubayes, .registration = TRUE
@@ -18,6 +18,6 @@
 #'     rename filter select arrange ungroup n distinct left_join if_else rowwise
 #' @importFrom tidyr gather
 #' @importFrom data.table rbindlist
-#'
+#' @importFrom RBesT automixfit
 #'
 NULL
