@@ -33,11 +33,11 @@ setGeneric("stb_plot_design",
 setGeneric("stb_generate_data",
            function(x, ...) standardGeneric("stb_generate_data"))
 
+setGeneric("stb_plot_data",
+           function(x, trial, ...) standardGeneric("stb_plot_data"))
+
 setGeneric("stb_analyze_data",
            function(x, data_ana, ...) standardGeneric("stb_analyze_data"))
-
-setGeneric("stb_plot_data",
-           function(x, data, ...) standardGeneric("stb_plot_data"))
 
 setGeneric("stb_create_trial",
            function(x, ...) standardGeneric("stb_create_trial"))
@@ -79,7 +79,6 @@ setGeneric("stb_get_trial_design",
 
 setGeneric("stb_trial_plot",
            function(x, ...) standardGeneric("stb_trial_plot"))
-
 
 ## -----------------------------------------------------------------------------
 ##                        class stb_simustudy
@@ -170,6 +169,12 @@ setMethod("stb_create_analysis_set",
           "STB_DESIGN",
           function(x, data, ...) list(data))
 
+#'
+#' @export
+#'
+setMethod("stb_plot_data",
+          "STB_DESIGN",
+          function(x, trial, ...) NULL)
 
 #'
 #' @export
@@ -332,15 +337,13 @@ setMethod("stb_get_trial_seed",   "STB_TRIAL", function(x) x@seed)
 ##     stb_create_analysis_set(x@design, x@data, ...)
 ## })
 
-
 #'
 #' @export
 #'
-setMethod("stb_trial_plot",
-          "STB_TRIAL",
+setMethod("stb_trial_plot",  "STB_TRIAL",
           function(x, ...) {
-              stb_plot_data(x@design, x@data, ...)
-          })
+    stb_plot_data(x@design, trial = x, ...)
+})
 
 
 ## -----------------------------------------------------------------------------

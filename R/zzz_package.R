@@ -19,5 +19,6 @@
 #' @importFrom tidyr gather
 #' @importFrom data.table rbindlist
 #' @importFrom RBesT automixfit
+#' @importFrom ggpubr annotate_figure
 #'
 NULL

@@ -1,11 +1,13 @@
-server <- function(input, output, session) {
 
+server <- function(input, output, session) {
+    
     source("des_tools.R")
 
     y = reactive({
         if(input$borrow == 'control arm' & input$outcome =='binary'){
             return(as.numeric(unlist(strsplit(input$y,","))))
         }})
+
     N = reactive({
         if(input$borrow == 'control arm' & input$outcome =='binary'){
             return(as.numeric(unlist(strsplit(input$N,","))))
@@ -44,6 +46,67 @@ server <- function(input, output, session) {
 
     success = reactive({as.numeric(unlist(strsplit(input$success,",")))})
     futility = reactive({as.numeric(unlist(strsplit(input$futility,",")))})
+    
+    p1.noninfo = reactive({
+      if(input$outcome == 'binary'){
+        p1.noninfo = input$p1.noninfo
+      }
+      if(input$outcome == 'normal'){
+        p1.noninfo = input$p1.noninfo.n
+      }
+      return(p1.noninfo)
+    })
+    
+    p2.noninfo = reactive({
+      if(input$outcome == 'binary'){
+        p1.noninfo = input$p1.noninfo
+      }
+      if(input$outcome == 'normal'){
+        p1.noninfo = input$p1.noninfo.n
+      }
+      return(p1.noninfo)
+    })
+    
+    
+    prior1 = reactive({
+      if(input$outcome == 'binary'){
+        prior1 = input$a
+      }
+      if(input$outcome == 'normal'){
+        prior1 = input$a.n
+      }
+      return(prior1)
+    })
+    
+    prior2 = reactive({
+      if(input$outcome == 'binary'){
+        prior2 = input$b
+      }
+      if(input$outcome == 'normal'){
+        prior2 = input$b.n
+      }
+      return(prior2)
+    })
+    
+    prior1.t = reactive({
+      if(input$outcome == 'binary'){
+        prior1.t = input$t.a
+      }
+      if(input$outcome == 'normal'){
+        prior1.t = input$t.a.n
+      }
+      return(prior1.t)
+    })
+    
+    prior2.t = reactive({
+      if(input$outcome == 'binary'){
+        prior2.t = input$t.b
+      }
+      if(input$outcome == 'normal'){
+        prior2.t = input$t.b.n
+      }
+      return(prior2.t)
+    })
 
     prior.hist = eventReactive(input$start, {
         if(input$prior=='Meta-Analytic Predictive Prior'){
@@ -56,8 +119,8 @@ server <- function(input, output, session) {
                                                 m = input$m,
                                                 s = input$s,
                                                 weight_noninfo = input$w,
-                                                prior1_noninfo = input$p1.noninfo,
-                                                prior2_noninfo = input$p2.noninfo,
+                                                prior1_noninfo = p1.noninfo(),
+                                                prior2_noninfo = p2.noninfo(),
                                                 cores = 1)
             }
             if(input$borrow=='control arm'){
@@ -70,8 +133,8 @@ server <- function(input, output, session) {
                                                     m = input$m,
                                                     s = input$s,
                                                     weight_noninfo = input$w,
-                                                    prior1_noninfo = input$p1.noninfo,
-                                                    prior2_noninfo = input$p2.noninfo,
+                                                    prior1_noninfo = p1.noninfo(),
+                                                    prior2_noninfo = p2.noninfo(),
                                                     cores = 1)
                 }
                 if(input$outcome =='binary'){
@@ -83,8 +146,8 @@ server <- function(input, output, session) {
                                                     m = input$m,
                                                     s = input$s,
                                                     weight_noninfo = input$w,
-                                                    prior1_noninfo = input$p1.noninfo,
-                                                    prior2_noninfo = input$p2.noninfo,
+                                                    prior1_noninfo = p1.noninfo(),
+                                                    prior2_noninfo = p2.noninfo(),
                                                     cores = 1)
                 }
             }
@@ -97,8 +160,8 @@ server <- function(input, output, session) {
                                                 m = input$m,
                                                 s = input$s,
                                                 weight_noninfo = input$w,
-                                                prior1_noninfo = input$p1.noninfo,
-                                                prior2_noninfo = input$p2.noninfo,
+                                                prior1_noninfo = p1.noninfo(),
+                                                prior2_noninfo = p2.noninfo(),
                                                 cores = 1)
             }
         }
@@ -108,8 +171,8 @@ server <- function(input, output, session) {
                                               y.dif.se = y.dif.se(),
                                               dtype = input$outcome,
                                               borrow = 'diff',
-                                              prior1 = input$a,
-                                              prior2 = input$b,
+                                              prior1 = prior1(),
+                                              prior2 = prior2(),
                                               power.param = input$power,
                                               cores=1)
             }
@@ -119,8 +182,8 @@ server <- function(input, output, session) {
                                                   y.se = y.se(),
                                                   dtype = input$outcome,
                                                   borrow = 'control',
-                                                  prior1 = input$a,
-                                                  prior2 = input$b,
+                                                  prior1 = prior1(),
+                                                  prior2 = prior2(),
                                                   power.param = input$power,
                                                   cores=1)
                 }
@@ -129,8 +192,8 @@ server <- function(input, output, session) {
                                                   N = N(),
                                                   dtype = input$outcome,
                                                   borrow = 'control',
-                                                  prior1 = input$a,
-                                                  prior2 = input$b,
+                                                  prior1 = prior1(),
+                                                  prior2 = prior2(),
                                                   power.param = input$power,
                                                   cores=1)
                 }
@@ -140,8 +203,8 @@ server <- function(input, output, session) {
                                               logOR.se = logOR.se(),
                                               dtype = input$outcome,
                                               borrow = 'logOR',
-                                              prior1 = input$a,
-                                              prior2 = input$b,
+                                              prior1 = prior1(),
+                                              prior2 = prior2(),
                                               power.param = input$power,
                                               cores=1)
             }
@@ -169,7 +232,7 @@ server <- function(input, output, session) {
                 lst = list(sample_size     = 30,
                            ratio_by_arm    = rt1(),
                            ratio_by_stage  = rt2(),
-                           prior_by_arm    = list(prior.hist(), c(input$t.a, input$t.b)),
+                           prior_by_arm    = list(prior.hist(), c(prior1.t(), prior2.t())),
                            m_s_control     = c(input$mu_c, input$sd_c),
                            m_s_treat       = c(input$mu_t, input$sd_t),
                            n_post          = 10000,
@@ -215,7 +278,7 @@ server <- function(input, output, session) {
                            ratio_by_arm    = rt1(),
                            ratio_by_stage  = rt2(),
                            p_by_arm        = c(input$pi.c, input$pi.t),
-                           prior_by_arm    = list(prior.hist(), c(input$t.a, input$t.b)),
+                           prior_by_arm    = list(prior.hist(), c(prior1.t(), prior2.t())),
                            n_post          = 10000,
                            test_direction  = input$direct,
                            decision_h0     = input$target,
@@ -227,7 +290,7 @@ server <- function(input, output, session) {
         }
         return(lst)
     })
-                                        #
+  
     ss.seq = reactive({seq(input$ssc1, input$ssc2, input$SSi)})
 
     octab = eventReactive(lst_para(),{

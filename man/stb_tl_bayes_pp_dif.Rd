@@ -2,7 +2,7 @@
 % Please edit documentation in R/stb_tls_pp.R
 \name{stb_tl_bayes_pp_dif}
 \alias{stb_tl_bayes_pp_dif}
-\title{Parametric approximation of Bayesian power prior for multiple historical difference between treatment and control}
+\title{Parametric approximation of Bayesian power prior}
 \usage{
 stb_tl_bayes_pp_dif(
   y.dif,
@@ -10,10 +10,11 @@ stb_tl_bayes_pp_dif(
   prior1,
   prior2,
   power.param,
-  model = "n_pp",
+  stan_mdl = "n_pp",
   ...
 )
 }
 \description{
-Parametric approximation of Bayesian power prior for multiple historical difference between treatment and control
+Parametric approximation of Bayesian power prior for multiple historical
+difference between treatment and control
 }

@@ -51,7 +51,7 @@ stb_tl_get_oc_shiny = function(lst_design, dtype, ss_seq, n_rep){
       gendat = bayes_mstage_gen_data_bin(lst_design)
       rst = foreach(i=1:n_rep,
                     .export = ls(globalenv()),
-                    .packages=c('RBesT'))  %dopar%{
+                    .packages=c('RBesT', 'simubayes'))  %dopar%{
                       get_postprobs_bin_m(lst_design)
                     }
     }
@@ -59,7 +59,7 @@ stb_tl_get_oc_shiny = function(lst_design, dtype, ss_seq, n_rep){
       gendat = bayes_mstage_gen_data_norm(lst_design)
       rst = foreach(i=1:n_rep,
                    .export = ls(globalenv()),
-                   .packages=c('RBesT')) %dopar%{
+                   .packages=c('RBesT', 'simubayes')) %dopar%{
                      get_postprobs_norm(lst_design)
                    }
     }

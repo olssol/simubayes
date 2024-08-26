@@ -57,6 +57,8 @@ internal_bayes_mstage_norm_dpara <- function() {
   )
 }
 
+
+#' @export
 bayes_mstage_gen_data_norm <- function(lst_design, seed=NULL){
   
   if (!is.null(seed))
@@ -102,6 +104,8 @@ bayes_mstage_gen_data_norm <- function(lst_design, seed=NULL){
 }
 
 
+
+#' @export
 get_postsample_norm = function(lst_design, ...){
   
   gendat = bayes_mstage_gen_data_norm(lst_design = lst_design, ...)
@@ -157,6 +161,7 @@ get_postsample_norm = function(lst_design, ...){
 }
 
 
+#' @export
 get_postprobs_norm = function(lst_design, ...){
   
   sample_lst = get_postsample_norm(lst_design, ...)

@@ -243,31 +243,33 @@ setMethod("stb_analyze_data",
 
 setMethod("stb_plot_data",
           "STB_DESIGN_MSTAGE_BIN",
-          function(x, data, rst, ...) {
+          function(x, trial, ...) {
     stb_tl_get_bayes_update_plt_bin(
         lst_design = x@design_para,
-        data = data,
-        rst = rst, ...)
+        data       = trial@data,
+        rst        = trial@result,
+        ...)
 })
 
 setMethod("stb_simu_gen_raw",
           "STB_DESIGN_MSTAGE_BIN",
           function(x, lst, ...) {
-            rst = NULL
-            for (i in seq_len(length(lst))) {
-              temp_row = lst[[i]][[1]]
-              rst = rbind(rst, temp_row)
-            }
-            return(list(rst))
-          })
+    rst <- NULL
+    for (i in seq_len(length(lst))) {
+        temp_row <- lst[[i]][[1]]
+        rst      <- rbind(rst, temp_row)
+    }
+    return(list(rst))
+})
 
 setMethod("stb_simu_gen_summary",
           "STB_DESIGN_MSTAGE_BIN",
           function(x, lst, ...) {
-            df = as.data.frame(lst[[1]])
-            len = nrow(df)
-            return(list(colSums(df, na.rm=TRUE)/len))
-          })
+    df  <- as.data.frame(lst[[1]])
+    len <- nrow(df)
+
+    list(colSums(df, na.rm = TRUE) / len)
+})
 
 
 ## ---------------------------------------------------------------------------
@@ -301,16 +303,16 @@ setMethod("stb_generate_data",
 setMethod("stb_analyze_data",
           "STB_DESIGN_MSTAGE_NORM",
           function(x, data_ana, ...) {
-            callNextMethod()
-            rst_post = get_postprobs_norm(lst_design = x@design_para, ...)
-            return(rst_post)
-          })
+    get_postprobs_norm(lst_design = x@design_para,
+                       ...)
+})
 
 setMethod("stb_plot_data",
           "STB_DESIGN_MSTAGE_NORM",
-          function(x, data, rst, ...) {
+          function(x, trial, ...) {
     stb_tl_get_bayes_update_plt_norm(
         lst_design = x@design_para,
-        data       = data,
-        rst        = rst, ...)
+        data       = trial@data,
+        rst        = trial@result,
+        ...)
 })

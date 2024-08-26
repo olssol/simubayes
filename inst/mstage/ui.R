@@ -1,147 +1,7 @@
 library(shinybusy)
 library(doParallel)
 library(foreach)
-
-cl = parallel::makeCluster(detectCores()-2)
-doParallel::registerDoParallel(cl)
-
-gen_raw = function(lst) {
-  rst = NULL
-  for (i in seq_len(length(lst))) {
-    temp_row = lst[[i]][[1]]
-    rst = rbind(rst, temp_row)
-  }
-  return(list(rst))
-}
-
-gen_summary = function(lst) {
-  df = as.data.frame(lst[[1]])
-  len = nrow(df)
-  return(list(colSums(df, na.rm=TRUE)/len))
-}
-
-stb_tl_get_bayes_update_shiny = function(lst_design, dtype, ss_seq){
-  if(dtype == 'binary'){
-    lst_design$sample_size = min(ss_seq)
-    gendat = bayes_mstage_gen_data_bin(lst_design)
-    rst = get_postprobs_bin_m(lst_design)
-    plt1 = stb_tl_get_bayes_update_plt_bin(lst_design, gendat, rst, seed=1)
-
-    lst_design$sample_size = max(ss_seq)
-    gendat = bayes_mstage_gen_data_bin(lst_design)
-    rst = get_postprobs_bin_m(lst_design)
-    plt2 = stb_tl_get_bayes_update_plt_bin(lst_design, gendat, rst, seed=1)
-  }
-  if(dtype == 'normal'){
-    lst_design$sample_size = min(ss_seq)
-    gendat = bayes_mstage_gen_data_norm(lst_design)
-    rst = get_postprobs_norm(lst_design)
-    plt1 = stb_tl_get_bayes_update_plt_norm(lst_design, gendat, rst, seed=1)
-
-    lst_design$sample_size = max(ss_seq)
-    gendat = bayes_mstage_gen_data_norm(lst_design)
-    rst = get_postprobs_norm(lst_design)
-    plt2 = stb_tl_get_bayes_update_plt_norm(lst_design, gendat, rst, seed=1)
-  }
-  plt_lst = list(plt1, plt2)
-  do.call(ggpubr::ggarrange, c(plt_lst, nrow=1, common.legend=TRUE, legend = 'top'))
-}
-
-stb_tl_get_oc_shiny = function(lst_design, dtype, ss_seq, n_rep){
-  oc_tab = c()
-  for(ss in ss_seq){
-    lst_design$sample_size = ss
-    if(dtype == 'binary'){
-      gendat = bayes_mstage_gen_data_bin(lst_design)
-      rst = foreach(i=1:n_rep,
-                    .export = ls(globalenv()),
-                    .packages=c('RBesT'))  %dopar%{
-                      get_postprobs_bin_m(lst_design)
-                    }
-    }
-    if(dtype == 'normal'){
-      gendat = bayes_mstage_gen_data_norm(lst_design)
-      rst = foreach(i=1:n_rep,
-                   .export = ls(globalenv()),
-                   .packages=c('RBesT')) %dopar%{
-                     get_postprobs_norm(lst_design)
-                   }
-    }
-    rst = gen_raw(rst)
-    probs = gen_summary(rst)[[1]]
-
-    ssc = (gendat$n)[seq_len(max(gendat$stage))]
-    sst = (gendat$n)[(max(gendat$stage)+1):length(gendat$stage)]
-    ss_total = sum(ssc) + sum(sst)
-    temp_row = c(ss_total, ssc, sst, probs)
-
-    names(temp_row) = c('total sample size ',
-                        sapply(1:max(gendat$stage),
-                               function(i){paste('sample size control stage', i)}),
-                        sapply(1:max(gendat$stage),
-                               function(i){paste('sample size treatment stage', i)}),
-                        sapply(1:max(gendat$stage),
-                               function(i){paste(c('success rate stage', 'futility rate stage', 'indeterminate rate stage'), i)})
-    )
-
-    oc_tab = rbind(oc_tab, temp_row)
-  }
-
-  oc_tab = t(oc_tab)
-  colnames(oc_tab) = sapply(1:ncol(oc_tab), function(i){paste0('scenario ', i)})
-
-  return(oc_tab)
-}
-
-
-stb_tl_plot_oc_shiny = function(lst_deisign, oc_tab){
-  plt_lst = list()
-  for(i in 1:length(lst_deisign$ratio_by_stage)){
-    pltdat = data.frame(sample_size = oc_tab[1,],
-                        success_rate = oc_tab[paste('success rate stage', i),],
-                        futility_rate = oc_tab[paste('futility rate stage', i),],
-                        indeterminate_rate = oc_tab[paste('indeterminate rate stage', i),])
-    plt_stage = ggplot2::ggplot(pltdat, aes(x=sample_size))+
-      ggplot2::geom_line(aes(y=success_rate, color='success'), linewidth=2) +
-      ggplot2::geom_line(aes(y=futility_rate, color='futility'), linewidth =2) +
-      ggplot2::geom_line(aes(y=indeterminate_rate, color='indeterminate'), linewidth=2) +
-      ggplot2::labs(title = paste('stage',i), x = 'total sample size', y = 'cumulative probability', color = 'decision') +
-      ggplot2::scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0,1))
-
-    plt_lst[[i]] = plt_stage
-  }
-
-  plt = do.call(ggpubr::ggarrange, c(plt_lst, nrow=1, common.legend=TRUE, legend = 'top'))
-  ggpubr::annotate_figure(plt, top = ggpubr::text_grob(paste0('sample size proportion per arm = ',
-                                                              paste(round(lst_deisign$ratio_by_arm,2), collapse = ' : '),
-                                                              '\n',
-                                                              'sample size proportion per stage = ',
-                                                              paste(round(lst_deisign$ratio_by_stage,2), collapse = ' : ')))
-  )
-}
-
-
-stb_tl_plot_type1_shiny = function(lst_deisign, oc_tab){
-  plt_lst = list()
-  for(i in 1:length(lst_deisign$ratio_by_stage)){
-    pltdat = data.frame(sample_size = oc_tab[1,],
-                        type1_error = oc_tab[paste('success rate stage', i),])
-    plt_stage = ggplot2::ggplot(pltdat, aes(x=sample_size))+
-      ggplot2::geom_line(aes(y=type1_error, color='type 1 error rate'), linewidth=2) +
-      ggplot2::labs(title = paste('stage',i), x = 'total sample size', y = '', color = '') +
-      ggplot2::scale_y_continuous(breaks = seq(0, 0.5, 0.05), limits = c(0, 0.5))
-
-    plt_lst[[i]] = plt_stage
-  }
-
-  plt = do.call(ggpubr::ggarrange, c(plt_lst, nrow=1, common.legend=TRUE, legend = 'top'))
-  ggpubr::annotate_figure(plt, top = ggpubr::text_grob(paste0('sample size proportion per arm = ',
-                                                              paste(round(lst_deisign$ratio_by_arm,2), collapse = ' : '),
-                                                              '\n',
-                                                              'sample size proportion per stage = ',
-                                                              paste(round(lst_deisign$ratio_by_stage,2), collapse = ' : ')))
-  )
-}
+library(simubayes)
 
 borrow_bin = c('control arm', 'treatment difference between arms', 'log OR')
 borrow_norm = c('control arm', 'treatment difference between arms')
@@ -152,20 +12,20 @@ prior = c('Power Prior', 'Meta-Analytic Predictive Prior')
 parameter_tabs_bin = conditionalPanel(
   condition = "input.outcome=='binary'",
   splitLayout(
-    numericInput('pi.c', withMathJax("$$ \\pi_c$$"), value=NULL, min=0, max=1),
-    numericInput('pi.t', withMathJax("$$ \\pi_t$$"), value=NULL, min=0, max=1)
+    numericInput('pi.c', withMathJax("$$ \\pi_c$$"), value=0.3, min=0, max=1),
+    numericInput('pi.t', withMathJax("$$ \\pi_t$$"), value=0.6, min=0, max=1)
   )
 )
 
 parameter_tabs_norm = conditionalPanel(
   condition = "input.outcome=='normal'",
   splitLayout(
-    numericInput("mu_c", withMathJax("$$\\mu_c $$"), value = NULL),
-    numericInput("sd_c", withMathJax("$$\\sigma_c $$"), value = NULL, min=0.01)
+    numericInput("mu_c", withMathJax("$$\\mu_c $$"), value = 4),
+    numericInput("sd_c", withMathJax("$$\\sigma_c $$"), value = 2, min=0.01)
   ),
   splitLayout(
-    numericInput("mu_t", withMathJax("$$\\mu_t $$"), value = NULL),
-    numericInput("sd_t", withMathJax("$$\\sigma_t $$"), value = NULL, min=0.01)
+    numericInput("mu_t", withMathJax("$$\\mu_t $$"), value = 6),
+    numericInput("sd_t", withMathJax("$$\\sigma_t $$"), value = 2, min=0.01)
   )
 )
 
@@ -212,55 +72,55 @@ MAP_tabs = conditionalPanel(
 
     conditionalPanel(
       condition="input.outcome=='normal'",
-      textInput('y.m', 'historical control effect (y.m) (comma delimited)', value=NULL),
-      textInput('y.se', 'standard error of historical control effect (y.se) (comma delimited)', value=NULL),
-      numericInput('v','half-normal tau prior (v)', value=NULL, min=0.01),
-      numericInput('m','normal mu prior (m)', value=NULL),
-      numericInput('s','normal mu prior (s)', value=NULL, min=0.01),
+      textInput('y.m', 'historical control effect (y.m) (comma delimited)', value=5),
+      textInput('y.se', 'standard error of historical control effect (y.se) (comma delimited)', value=1),
+      numericInput('v','half-normal tau prior (v)', value=1, min=0.01),
+      numericInput('m','normal mu prior (m)', value=0),
+      numericInput('s','normal mu prior (s)', value=1, min=0.01),
       sliderInput('w','weight of non-informative prior', value=0.5, min=0, max=1),
-      numericInput('p1.noninfo', 'normal noninformative prior to mix with (mean)', value=NULL),
-      numericInput('p2.noninfo', 'normal noninformative prior to mix with (sd)', value=NULL, min=0.01),
-      numericInput('t.a', 'normal prior for treatment arm (mu)', value = NULL, min=0.01),
-      numericInput('t.b', 'normal prior for treatment arm (tau)', value = NULL, min=0.01)
+      numericInput('p1.noninfo.n', 'normal noninformative prior to mix with (mean)', value=0),
+      numericInput('p2.noninfo.n', 'normal noninformative prior to mix with (sd)', value=1, min=0.01),
+      numericInput('t.a.n', 'normal prior for treatment arm (mu)', value = 0, min=0.01),
+      numericInput('t.b.n', 'normal prior for treatment arm (tau)', value = 1, min=0.01)
     ),
 
     conditionalPanel(
       condition = "input.outcome=='binary'",
-      textInput('y', 'historical control responses (y) (comma delimited)', value=NULL),
-      textInput('N', 'historical control sample size (N) (comma delimited)', value=NULL),
-      numericInput('v','half-normal tau prior (v)', value=NULL, min=0.01),
-      numericInput('m','normal mu prior (m)', value=NULL),
-      numericInput('s','normal mu prior (s)', value=NULL, min=0.01),
+      textInput('y', 'historical control responses (y) (comma delimited)', value=20),
+      textInput('N', 'historical control sample size (N) (comma delimited)', value=100),
+      numericInput('v','half-normal tau prior (v)', value=1, min=0.01),
+      numericInput('m','normal mu prior (m)', value=0),
+      numericInput('s','normal mu prior (s)', value=1, min=0.01),
       sliderInput('w','weight of non-informative prior', value=0.5, min=0, max=1),
-      numericInput('p1.noninfo', 'beta noninformative prior to mix with (a)', value=NULL),
-      numericInput('p2.noninfo', 'beta noninformative prior to mix with (b)', value=NULL),
-      numericInput('t.a', 'beta prior for treatment arm (a)', value = NULL, min=0.01),
-      numericInput('t.b', 'beta prior for treatment arm (b)', value = NULL, min=0.01),
+      numericInput('p1.noninfo', 'beta noninformative prior to mix with (a)', value=1),
+      numericInput('p2.noninfo', 'beta noninformative prior to mix with (b)', value=1),
+      numericInput('t.a', 'beta prior for treatment arm (a)', value = 1, min=0.01),
+      numericInput('t.b', 'beta prior for treatment arm (b)', value = 1, min=0.01),
 
     )
   ),
 
   conditionalPanel(
     condition = "input.borrow=='treatment difference between arms'",
-    textInput('y.dif', 'treatment difference (y.dif) ', value=NULL),
-    textInput('y.dif.se', 'standard error of treatment difference (y.dif.se) (comma delimited)', value=NULL),
-    numericInput('v','half-normal tau prior (v)', value=NULL, min=0.01),
-    numericInput('m','normal mu prior (m)', value=NULL),
-    numericInput('s','normal mu prior (s)', value=NULL, min=0.01),
+    textInput('y.dif', 'treatment difference (y.dif) ', value=0),
+    textInput('y.dif.se', 'standard error of treatment difference (y.dif.se) (comma delimited)', value=1),
+    numericInput('v','half-normal tau prior (v)', value=1, min=0.01),
+    numericInput('m','normal mu prior (m)', value=0),
+    numericInput('s','normal mu prior (s)', value=1, min=0.01),
     sliderInput('w','weight of non-informative prior', value=0.5, min=0, max=1),
-    numericInput('p1.noninfo', 'normal noninformative prior to mix with (mean)', value=NULL),
-    numericInput('p2.noninfo', 'normal noninformative prior to mix with (sd)', value=NULL, min=0.01)
+    numericInput('p1.noninfo.n', 'normal noninformative prior to mix with (mean)', value=0),
+    numericInput('p2.noninfo.n', 'normal noninformative prior to mix with (sd)', value=1, min=0.01)
   ),
   conditionalPanel(
     condition = "input.borrow=='log OR'",
-    textInput('logOR', 'log OR (comma delimited)', value=NULL),
-    textInput('logOR.se', 'standard error of log OR (comma delimited)', value=NULL),
-    numericInput('v','half-normal tau prior (v)', value=NULL, min=0.01),
-    numericInput('m','normal mu prior (m)', value=NULL),
-    numericInput('s','normal mu prior (s)', value=NULL, min=0.01),
+    textInput('logOR', 'log OR (comma delimited)', value=0),
+    textInput('logOR.se', 'standard error of log OR (comma delimited)', value=1),
+    numericInput('v','half-normal tau prior (v)', value=1, min=0.01),
+    numericInput('m','normal mu prior (m)', value=0),
+    numericInput('s','normal mu prior (s)', value=1, min=0.01),
     sliderInput('w','weight of non-informative prior', value=0.5, min=0, max=1),
-    numericInput('p1.noninfo', 'normal noninformative prior to mix with (mean)', value=NULL),
-    numericInput('p2.noninfo', 'normal noninformative prior to mix with (sd)', value=NULL, min=0.01)
+    numericInput('p1.noninfo.n', 'normal noninformative prior to mix with (mean)', value=0),
+    numericInput('p2.noninfo.n', 'normal noninformative prior to mix with (sd)', value=1, min=0.01)
   )
 )
 
@@ -302,38 +162,38 @@ PP_tabs = conditionalPanel(
     sliderInput('power','power parameter (k) ', value=0.3, min=0, max=1),
     conditionalPanel(
       condition = "input.outcome=='binary'",
-      textInput('y', 'historical control responses (y) (comma delimited)', value=NULL),
-      textInput('N', 'historical control sample sizes(N) (comma delimited)', value=NULL),
-      numericInput('a','beta prior for control arm (a)', value=NULL, min=0.01),
-      numericInput('b','beta prior for control arm (b)', value=NULL, min=0.01),
-      numericInput('t.a', 'beta prior for treatment arm (a)', value = NULL, min=0.01),
-      numericInput('t.b', 'beta prior for treatment arm (b)', value = NULL, min=0.01)
+      textInput('y', 'historical control responses (y) (comma delimited)', value=20),
+      textInput('N', 'historical control sample sizes(N) (comma delimited)', value=100),
+      numericInput('a','beta prior for control arm (a)', value=1, min=0.01),
+      numericInput('b','beta prior for control arm (b)', value=1, min=0.01),
+      numericInput('t.a', 'beta prior for treatment arm (a)', value = 1, min=0.01),
+      numericInput('t.b', 'beta prior for treatment arm (b)', value = 1, min=0.01)
     ),
     conditionalPanel(
       condition = "input.outcome=='normal'",
-      textInput('y.m', 'control mean (y.m) (comma delimited)', value=NULL),
-      textInput('y.se', 'standard error of control mean (y.se) (comma delimited)', value=NULL),
-      numericInput('a','normal prior for control arm (m)', value=NULL),
-      numericInput('b','normal prior for control arm (s)', value=NULL, min=0.01),
-      numericInput('t.a', 'normal prior for treatment arm (m)', value = NULL, min=0.01),
-      numericInput('t.b', 'normal prior for treatment arm (s)', value = NULL, min=0.01)
+      textInput('y.m', 'control mean (y.m) (comma delimited)', value=4),
+      textInput('y.se', 'standard error of control mean (y.se) (comma delimited)', value=1),
+      numericInput('a.n','normal prior for control arm (m)', value=0),
+      numericInput('b.n','normal prior for control arm (s)', value=1, min=0.01),
+      numericInput('t.a.n', 'normal prior for treatment arm (m)', value = 0, min=0.01),
+      numericInput('t.b.n', 'normal prior for treatment arm (s)', value = 1, min=0.01)
     )
   ),
   conditionalPanel(
     condition = "input.borrow=='treatment difference between arms'",
-    textInput('y.dif', 'treatment difference (y.dif) (comma delimited)', value=NULL),
-    textInput('y.dif.se', 'standard error of treatment difference (y.dif.se) (comma delimited)', value=NULL),
+    textInput('y.dif', 'treatment difference (y.dif) (comma delimited)', value=0),
+    textInput('y.dif.se', 'standard error of treatment difference (y.dif.se) (comma delimited)', value=1),
     sliderInput('power','power parameter (k)', value=0.3, min=0, max=1),
-    numericInput('a','normal prior (m)', value=NULL),
-    numericInput('b','normal prior (s)', value=NULL, min=0.01)
+    numericInput('a.n','normal prior (m)', value=0),
+    numericInput('b.n','normal prior (s)', value=1, min=0.01)
   ),
   conditionalPanel(
     condition = "input.borrow=='log OR'",
-    textInput('logOR', 'log OR (comma delimited)', value=NULL),
-    textInput('logOR.se', 'standard error of log OR (comma delimited)', value=NULL),
+    textInput('logOR', 'log OR (comma delimited)', value=0),
+    textInput('logOR.se', 'standard error of log OR (comma delimited)', value=1),
     sliderInput('power','power parameter (k)', value=0.3, min=0, max=1),
-    numericInput('a','normal prior (m)', value=NULL),
-    numericInput('b','normal prior (s)', value=NULL, min=0.01)
+    numericInput('a.n','normal prior (m)', value=0),
+    numericInput('b.n','normal prior (s)', value=1, min=0.01)
   )
 )
 
@@ -457,7 +317,7 @@ side_panel2 =   sidebarPanel(
   ),
   parameter_tabs_bin,
   parameter_tabs_norm,
-  numericInput('target', withMathJax("$$\\text{ decision threshold } \\delta $$"), value=NULL),
+  numericInput('target', withMathJax("$$\\text{ decision threshold } \\delta $$"), value=0),
   #sliderInput('success', withMathJax("$$\\text{success criterion } c_s $$"), value=0.9, min=0, max=1),
   #sliderInput('futility', withMathJax("$$\\text{futility criterion } c_f $$"), value=0.5, min=0, max=1)
   textInput('success', 'success criteria per stage (comma delimited)', value = '0.9, 0.9, 0.9'),
@@ -470,7 +330,7 @@ side_panel3 =   sidebarPanel(
   strong('control sample size (stage 1)'),
   splitLayout(
     numericInput('ssc1', 'from', value = 30, min=2),
-    numericInput('ssc2', 'to', value = 80, min=2),
+    numericInput('ssc2', 'to', value = 60, min=2),
     numericInput('SSi', 'interval', value=10, min=1)
   ),
 

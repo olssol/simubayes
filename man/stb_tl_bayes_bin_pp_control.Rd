@@ -10,7 +10,7 @@ stb_tl_bayes_bin_pp_control(
   prior1,
   prior2,
   power.param,
-  model = "b_pp",
+  stan_mdl = "b_pp",
   ...
 )
 }
