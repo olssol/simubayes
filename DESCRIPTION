@@ -23,8 +23,7 @@ Imports:
 LinkingTo:
     Rcpp (>= 1.0.5),
     RcppEigen (>= 0.3.3.7.0),
-    RcppParallel (>= 5.0.2),
-    StanHeaders (>= 2.26.0)
+    RcppParallel (>= 5.0.2)
 Suggests: knitr, shiny, rmarkdown, pander, xtable
 Encoding: UTF-8
 ByteCompile: true
