@@ -9,3 +9,7 @@ rm -rf ./src/*.d
 rm -rf ./src/*.rc
 rm -rf ./src/*.rds
 rm -rf ./src-*
+
+if [ -d "bin" ]; then
+  rm -rf bin
+fi

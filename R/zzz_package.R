@@ -20,5 +20,6 @@
 #' @importFrom data.table rbindlist
 #' @importFrom RBesT automixfit
 #' @importFrom ggpubr annotate_figure
+#' @importFrom instantiate stan_package_model
 #'
 NULL

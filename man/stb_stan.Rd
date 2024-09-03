@@ -11,7 +11,7 @@ stb_stan(
   iter = 2000,
   warmup = 1000,
   cores = 4,
-  control = list(adapt_delta = 0.95),
+  adapt_delta = 0.95,
   ...
 )
 }
@@ -25,8 +25,6 @@ stb_stan(
 \item{iter}{STAN parameter. Number of iterations}
 
 \item{warmup}{STAN parameter. Number of burnin.}
-
-\item{control}{STAN parameter. See \code{rstan::stan} for details.}
 
 \item{...}{other options to call STAN sampling such as \code{thin},
 \code{algorithm}. See \code{rstan::sampling} for details.#'}

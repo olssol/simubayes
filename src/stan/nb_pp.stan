@@ -13,8 +13,8 @@
 data {
   int<lower=0>           N0;
   int<lower=0>           N1;
-  int<lower=0>           Y0[N0];
-  int<lower=0>           Y1[N0];
+  array[N0] int<lower=0> Y0;
+  array[N0] int<lower=0> Y1;
 
   real<lower=0, upper=1> WEIGHT;
   real                   THETA_EXT;

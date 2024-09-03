@@ -17,10 +17,11 @@ stb_tl_bayes_bin_pp_control <- function(N,
                    a_0 = power.param)
 
   rst <- stb_stan(lst_data, stan_mdl = stan_mdl, ...)
-  rst <- rstan::extract(rst, par = 'theta')
-  PP.c <- RBesT::automixfit(as.vector(rst[[1]]), type='beta')
-
-  return(PP.c)
+  rst <- rst$draws("theta")
+  rst <- posterior::as_draws_rvars(rst)
+  rst <- posterior::draws_of(rst$theta)
+  PP.c <- RBesT::automixfit(as.vector(rst), type='beta')
+  PP.c
 }
 
 
@@ -43,10 +44,13 @@ stb_tl_bayes_norm_pp_control <- function(y.m,
                    a_0 = power.param)
 
   rst <- stb_stan(lst_data, stan_mdl = stan_mdl, ...)
-  rst <- rstan::extract(rst, par = 'mu')
-  PP.c <- RBesT::automixfit(as.vector(rst[[1]]), type='norm')
+  rst <- rst$draws("mu")
+  rst <- posterior::as_draws_rvars(rst)
+  rst <- posterior::draws_of(rst$mu)
+  PP.c <- RBesT::automixfit(as.vector(rst), type='norm')
+  
+  PP.c
 
-  return(PP.c)
 }
 
 
@@ -72,10 +76,12 @@ stb_tl_bayes_pp_dif <- function(y.dif,
                    a_0 = power.param)
 
   rst <- stb_stan(lst_data, stan_mdl = stan_mdl, ...)
-  rst <- rstan::extract(rst, par = 'mu')
-  PP <- RBesT::automixfit(as.vector(rst[[1]]), type='norm')
+  rst <- rst$draws("mu")
+  rst <- posterior::as_draws_rvars(rst)
+  rst <- posterior::draws_of(rst$mu)
+  PP <- RBesT::automixfit(as.vector(rst), type='norm')
 
-  return(PP)
+  PP
 }
 
 stb_tl_bayes_pp_or <- function(logOR,
@@ -94,9 +100,12 @@ stb_tl_bayes_pp_or <- function(logOR,
                      a_0 = power.param)
 
     rst <- stb_stan(lst_data, stan_mdl = stan_mdl, ...)
-    rst <- rstan::extract(rst, par = 'mu')
-
-    RBesT::automixfit(as.vector(rst[[1]]), type='norm')
+    rst <- rst$draws("mu")
+    rst <- posterior::as_draws_rvars(rst)
+    rst <- posterior::draws_of(rst$mu)
+    
+    PP <-RBesT::automixfit(as.vector(rst), type='norm')
+    PP
 }
 
 

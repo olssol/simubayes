@@ -1,7 +1,7 @@
 Package: simubayes
 Title: An R Package for Simulating Bayesian Clinical Trials
 Version: 4.1
-Authors@R: 
+Authors@R:
     person(given = "Chenguang",
            family = "Wang",
            role = c("aut", "cre"),
@@ -9,13 +9,21 @@ Authors@R:
 Maintainer: Chenguang Wang <chenguang.wang.0517@gmail.com>
 Description: A simulation toolbox R package for simulating Bayesian clinical trials.
 License: GPL (>=3)
-Depends: R (>= 4.0), methods, dplyr (>= 1.0), ggplot2 (>= 3.3.5), tidyr
-        (>= 1.1)
-Imports: methods, Rcpp (>= 0.12.0), RcppParallel (>= 5.0.1), rstan (>=
-        2.18.1), rstantools (>= 2.3.1.1)
-LinkingTo: BH (>= 1.72.0), Rcpp (>= 1.0.5), RcppEigen (>= 0.3.3.7.0),
-        RcppParallel (>= 5.0.2), rstan (>= 2.26.0), StanHeaders (>=
-        2.26.0)
+Depends:
+    R (>= 4.0),
+    dplyr (>= 1.0),
+    ggplot2 (>= 3.3),
+    tidyr (>= 1.1)
+Imports:
+    methods,
+    Rcpp (>= 0.12),
+    RcppParallel (>= 5.0),
+    instantiate (>= 0.2),
+    cmdstanr (>= 0.8)
+LinkingTo:
+    Rcpp (>= 1.0.5),
+    RcppEigen (>= 0.3.3.7.0),
+    RcppParallel (>= 5.0.2)
 Suggests: knitr, shiny, rmarkdown, pander, xtable
 Encoding: UTF-8
 ByteCompile: true

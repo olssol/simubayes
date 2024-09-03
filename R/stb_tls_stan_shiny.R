@@ -13,7 +13,6 @@
 #' @param chains STAN parameter. Number of Markov chainsm
 #' @param iter STAN parameter. Number of iterations
 #' @param warmup STAN parameter. Number of burnin.
-#' @param control STAN parameter. See \code{rstan::stan} for details.
 #' @param ... other options to call STAN sampling such as \code{thin},
 #'     \code{algorithm}. See \code{rstan::sampling} for details.#'
 #'
@@ -24,18 +23,20 @@
 stb_stan <- function(lst_data,
                      stan_mdl = c("nb_mix", "nb_pp", "b_pp", "n_pp"),
                      chains = 4, iter = 2000, warmup = 1000, cores = 4,
-                     control = list(adapt_delta = 0.95), ...) {
+                     adapt_delta = 0.95, ...) {
 
     stan_mdl <- match.arg(stan_mdl)
-    stan_rst <- rstan::sampling(stanmodels[[stan_mdl]],
-                                data    = lst_data,
-                                chains  = chains,
-                                iter    = iter,
-                                warmup  = warmup,
-                                cores   = cores,
-                                control = control,
-                                ...)
+    mod      <- instantiate::stan_package_model(
+                                 name    = stan_mdl,
+                                 package = "simubayes")
 
+    stan_rst <- mod$sample(data            = lst_data,
+                           chains          = chains,
+                           parallel_chains = cores,
+                           iter_warmup     = warmup,
+                           iter_sampling   = iter - warmup,
+                           adapt_delta     = adapt_delta,
+                           ...)
     stan_rst
 }
 

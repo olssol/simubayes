@@ -2,6 +2,8 @@ library(shinybusy)
 library(doParallel)
 library(foreach)
 library(simubayes)
+library(ggplot2)
+library(ggpubr)
 
 borrow_bin = c('control arm', 'treatment difference between arms', 'log OR')
 borrow_norm = c('control arm', 'treatment difference between arms')
@@ -326,7 +328,7 @@ side_panel2 =   sidebarPanel(
 
 
 side_panel3 =   sidebarPanel(
-  numericInput('ntrials','number of simulated trials', value=1000, min=1),
+  numericInput('ntrials','number of simulated trials', value=2000, min=1),
   strong('control sample size (stage 1)'),
   splitLayout(
     numericInput('ssc1', 'from', value = 30, min=2),
