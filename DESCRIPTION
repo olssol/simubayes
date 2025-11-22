@@ -1,11 +1,15 @@
 Package: simubayes
 Title: An R Package for Simulating Bayesian Clinical Trials
 Version: 4.1
-Authors@R:
+Authors@R: c(
     person(given = "Chenguang",
            family = "Wang",
            role = c("aut", "cre"),
-           email = "chenguang.wang.0517@gmail.com")
+           email = "chenguang.wang.0517@gmail.com"),
+    person(given = "Jeen",
+           family = "Liu",
+           role = "aut",
+           email = "jeen.j.liu@gmail.com"))
 Maintainer: Chenguang Wang <chenguang.wang.0517@gmail.com>
 Description: A simulation toolbox R package for simulating Bayesian clinical trials.
 License: GPL (>=3)
